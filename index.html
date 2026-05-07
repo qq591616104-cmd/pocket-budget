@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <!--
-口袋记账 v1.1.7 - 离线单文件版
+口袋记账 v1.1.8 - 离线单文件版
 打开方式：直接用浏览器（Safari / Chrome / Edge 等）打开本文件
 数据存储：浏览器 localStorage，关闭页面不会丢失
 iOS 用户：可保存到"文件" App，从 Safari 打开后选"添加到主屏幕"，可像 APP 一样使用
@@ -26,20 +26,23 @@ iOS 用户：可保存到"文件" App，从 Safari 打开后选"添加到主屏�
     -webkit-tap-highlight-color: transparent;
 }
 
+/* html 与 body 都铺同款渐变 —— 关键：body opacity:0 时透出来的是 html 的 gradient（同色），
+   不会露出 html 默认的白色。配合 native windowBackground 也是 gradient，全程视觉一致 */
 html {
     color-scheme: only light;
     forced-color-adjust: none;
+    background: linear-gradient(to bottom right, #EFF6FF, #F3E8FF);
+    min-height: 100vh;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: linear-gradient(to bottom right, #EFF6FF, #F3E8FF);
     min-height: 100vh;
     padding-bottom: 60px;
     overflow-x: hidden;
     touch-action: pan-y;
-    /* 首帧 opacity 0，等 React 渲染完后 JS 加 .ready 触发 250ms 淡入。
-       配合 native 渐变 drawable 背景，用户看到的是内容从背景里"浮出来"，没有"跳一下"的感觉 */
+    /* body 不再单独设 background；让 html 的 gradient 透出来。
+       opacity 0 → 1 控制 React 内容的淡入，背景始终保持 gradient 不变 */
     opacity: 0;
     transition: opacity 250ms ease-in;
 }
