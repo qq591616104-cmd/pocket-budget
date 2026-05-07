@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <!--
-口袋记账 v1.1.6 - 离线单文件版
+口袋记账 v1.1.7 - 离线单文件版
 打开方式：直接用浏览器（Safari / Chrome / Edge 等）打开本文件
 数据存储：浏览器 localStorage，关闭页面不会丢失
 iOS 用户：可保存到"文件" App，从 Safari 打开后选"添加到主屏幕"，可像 APP 一样使用
@@ -38,6 +38,14 @@ body {
     padding-bottom: 60px;
     overflow-x: hidden;
     touch-action: pan-y;
+    /* 首帧 opacity 0，等 React 渲染完后 JS 加 .ready 触发 250ms 淡入。
+       配合 native 渐变 drawable 背景，用户看到的是内容从背景里"浮出来"，没有"跳一下"的感觉 */
+    opacity: 0;
+    transition: opacity 250ms ease-in;
+}
+
+body.ready {
+    opacity: 1;
 }
 
 .container {
@@ -1699,7 +1707,17 @@ const App = () => {
   const [sortMode, setSortMode] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
 
-  // 长时间离开后回到 app 视为"重新打开"：关闭所有模态、滚到顶
+  // 首次挂载完成后，等下一帧让 React 真正渲染出内容，再加 .ready 触发 body 淡入
+  // 配合 native 渐变背景，用户看到的是"内容从背景中浮出来"
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.body.classList.add('ready');
+      });
+    });
+  }, []);
+
+  // 长时间离开后回到 app 视为"重新打开"：关闭所有模态、滚到顶 + 重新淡入
   // 短暂切走（< 30 秒）保留现场，避免临时查个东西回来现场被破坏
   // 主要服务于 iOS PWA 与 Android 热恢复场景；冷启动场景由 native finishOnTaskLaunch 已经处理
   useEffect(() => {
@@ -1716,6 +1734,13 @@ const App = () => {
           setSortMode(false);
           setEditingRecord(null);
           window.scrollTo(0, 0);
+          // 重新触发淡入：先脱掉 ready 让 opacity 变 0，下一帧再加回，触发 transition
+          document.body.classList.remove('ready');
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              document.body.classList.add('ready');
+            });
+          });
         }
         hiddenAt = null;
       }
